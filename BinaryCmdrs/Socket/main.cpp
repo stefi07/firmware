@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h> //Must use "-lpthread linker cmd
+#include <sys/select.h>
 #include <sys/time.h>
 #include <sys/syscall.h>
 
@@ -227,16 +228,23 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		//give up our timeslice so as not to bog the system
+		//Wait for data on socket; wakes immediately on arrival
 		if (Bored)
 		{
 			#ifdef WIN32
 			Sleep(50);
 			#else
-			struct timespec fiftymilliseconds;
-			memset((char *)&fiftymilliseconds,0,sizeof(fiftymilliseconds));
-			fiftymilliseconds.tv_nsec = 50000000;
-			nanosleep(&fiftymilliseconds, NULL);
+			int socketFd = LocalPortPinout.GetFd();
+			if (socketFd >= 0)
+			{
+				fd_set readfds;
+				struct timeval timeout;
+				FD_ZERO(&readfds);
+				FD_SET(socketFd, &readfds);
+				timeout.tv_sec = 0;
+				timeout.tv_usec = 50000; //50ms ceiling
+				select(socketFd + 1, &readfds, NULL, NULL, &timeout);
+			}
 			#endif
 		}
 	}

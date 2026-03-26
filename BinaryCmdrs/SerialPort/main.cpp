@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/select.h>
 
 #include <iostream>
 using namespace std;
@@ -196,16 +197,23 @@ int main(int argc, char *argv[])
             Bored = false;
         }
 
-		//give up our timeslice so as not to bog the system
+		//Wait for data on serial port; wakes immediately on arrival
 		if (Bored)
 		{
 			#ifdef WIN32
 			Sleep(50);
 			#else
-			struct timespec fiftymilliseconds;
-			memset((char *)&fiftymilliseconds,0,sizeof(fiftymilliseconds));
-			fiftymilliseconds.tv_nsec = 50000000;
-			nanosleep(&fiftymilliseconds, NULL);
+			int serialFd = LocalPortPinout.GetFd();
+			if (serialFd >= 0)
+			{
+				fd_set readfds;
+				struct timeval timeout;
+				FD_ZERO(&readfds);
+				FD_SET(serialFd, &readfds);
+				timeout.tv_sec = 0;
+				timeout.tv_usec = 50000; //50ms ceiling
+				select(serialFd + 1, &readfds, NULL, NULL, &timeout);
+			}
 			#endif
 		}
 	}

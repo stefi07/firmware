@@ -535,6 +535,8 @@ public:
 	bool AutoReopen() { return(autoreopen); }
 	
 	void AutoReopen(const bool ar) { autoreopen = ar; }
+
+	int GetFd() const { return ComFileDescriptor; }
 	
 	private:
 

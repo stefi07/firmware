@@ -352,6 +352,8 @@ public:
 	virtual bool connected() { return(hSocket > 0); }	
 	virtual bool isopen() const { return(hSocket > 0); }	
 	void silent(const bool s) { Silent = s; }
+
+	int GetFd() const { return hSocket; }
 	
 	private:
 

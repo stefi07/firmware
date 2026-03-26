@@ -279,6 +279,8 @@ public:
 	}
 	
 	bool isopen() const { return(connected()); }
+
+	int GetFd() const { return hSocket; }
 	
 	public:
 
